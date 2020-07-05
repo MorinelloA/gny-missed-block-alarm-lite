@@ -2,12 +2,14 @@ var errorAudio;
 var alarmAudio;
 var missedBlocks;
 var forgedBlocks;
+var currentNetworkHeight;
 var consecutiveMissedBlocks = 0;
 var consecutiveMin;
 var frequency;
 var delegateName;
 var node;
 var interval;
+var networkInterval;
 var playError;
 var playMissed;
 
@@ -67,6 +69,7 @@ function stop() {
     document.getElementById('status').innerHTML = 'Status: <font color="red">Not Checking</font>';
     enableOptions();
     clearInterval(interval);
+    clearInterval(networkInterval);
 }
 
 function start() {
@@ -93,6 +96,20 @@ function start() {
         node = document.getElementById('customnode').value;
     }
 
+    let networkFailureSelect = document.getElementById('checkNetworkHeight');
+    let networkFailure = networkFailureSelect[networkFailureSelect.selectedIndex].value;
+    if(networkFailure === 'yes')
+    {
+        fetch(node + '/api/blocks/getHeight')
+            .then(res => res.json())
+            .then((out) => {
+                currentNetworkHeight = out.height;
+                networkInterval = setInterval(function() {
+                    checkNetworkHeight();
+                }, 1010000); //Time it takes to go through all 101 active delegates once
+            }).catch(err => alert(err));
+    }
+
     if (frequency >= 1000 * 60) //one minute
     {
         disableOptions();
@@ -113,6 +130,46 @@ function start() {
     } else {
         alert("Frequency must by 1 minute or greater");
     }
+}
+
+function checkNetworkHeight() {
+    let dt = new Date();
+
+    let minutes;
+    if (dt.getMinutes() > 9) {
+        minutes = dt.getMinutes();
+    } else {
+        minutes = '0' + dt.getMinutes();
+    }
+
+    let seconds;
+    if (dt.getSeconds() > 9) {
+        seconds = dt.getSeconds();
+    } else {
+        seconds = '0' + dt.getSeconds();
+    }
+
+    let dtformat = dt.getDate() + '-' + (dt.getMonth() + 1) + '-' + dt.getFullYear() + ' ' + dt.getHours() + ':' + minutes + ':' + seconds;
+    fetch(node + '/api/blocks/getHeight')
+        .then(res => res.json())
+        .then((out) => {
+            try {
+                document.getElementById('lastNetworkFailureCheck').innerText = 'Last Network Failure Check: Block #' + out.height + ' @ ' + dtformat;
+                if (out.height <= currentNetworkHeight)
+                {
+                    document.getElementById('lastNetworkFailure').innerText = 'Last Network Failure: ' + dtformat;
+
+                    playMissedBlocksSound();
+                }
+                else
+                {
+                    currentNetworkHeight = out.height;
+                }
+            }
+            catch (e) {
+                processError(e);
+            }
+        }).catch(e => processError(e));
 }
 
 function checkMissedBlocks() {
@@ -145,7 +202,7 @@ function checkMissedBlocks() {
                     document.getElementById('numOfMissedBlocks').innerText = 'Number of Missed Blocks for ' + delegateName + ': ' + missedBlocks;
                     document.getElementById('lastMissedBlock').innerText = 'Last Missed Block: ' + dtformat;
                 } else {
-                    document.getElementById('lastCheck').innerText = 'Last Check: ' + dtformat;
+                    document.getElementById('lastCheck').innerText = 'Last Missed Block Check: ' + dtformat;
                 }
 
                 let forgedBlocks2 = body.delegate.producedBlocks;
@@ -261,6 +318,18 @@ function playMissedBlocksSound() {
     }
 }
 
+function playNetworkFailuerSound() {
+    let timeselect = document.getElementById('alarmtime');
+    let time = timeselect[timeselect.selectedIndex].value;
+    if(time === 'always' || isInTimeframe())
+    {
+        if(playMissed)
+        {
+            alarmAudio.play();
+        }
+    }
+}
+
 function stopSounds() {
     alarmAudio.pause();
     alarmAudio.currentTime = 0;
@@ -316,6 +385,7 @@ function disableOptions() {
     document.getElementById('errorblocksound').disabled = true;
     document.getElementById('missedblocksound').disabled = true;
     document.getElementById('delegate').disabled = true;
+    document.getElementById('checkNetworkHeight').disabled = true;
 }
 
 function enableOptions() {
@@ -331,4 +401,5 @@ function enableOptions() {
     document.getElementById('errorblocksound').disabled = false;
     document.getElementById('missedblocksound').disabled = false;
     document.getElementById('delegate').disabled = false;
+    document.getElementById('checkNetworkHeight').disabled = false;
 }
