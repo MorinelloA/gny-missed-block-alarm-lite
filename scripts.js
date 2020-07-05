@@ -107,7 +107,7 @@ function start() {
                 networkInterval = setInterval(function() {
                     checkNetworkHeight();
                 }, 1010000); //Time it takes to go through all 101 active delegates once
-            }).catch(err => alert(err));
+            }).catch(err => alert('Could not fetch initial network height'));
     }
 
     if (frequency >= 1000 * 60) //one minute
@@ -126,7 +126,7 @@ function start() {
                 interval = setInterval(function() {
                     checkMissedBlocks();
                 }, frequency);
-            }).catch(err => alert(err));
+            }).catch(err => alert('Could not fetch initial # of missed blocks for this delegate'));
     } else {
         alert("Frequency must by 1 minute or greater");
     }
