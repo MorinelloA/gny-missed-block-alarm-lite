@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="scripts.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <title>GNY Missed Block Alarm Lite</title>
+</head>
+
+<body>
+    <div class="jumbotron">
+        <h1 id='status' class="display-6">Status: 
+            <font color="red">Not Checking</font>
+        </h1>
+        <div id='numOfMissedBlocks' class="lead"></div>
+        <hr class="my-4">
+        <div id='lastCheck' class="lead">Last Check: N/A</div>
+        <div id='lastMissedBlock' class="lead">Last Missed Block: N/A</div>
+        <div id='lastError' class="lead">Last Error: N/A</div>
+    </div>
+    <form>
+        <audio id="Alarm">
+            <source type="audio/mpeg"> Your browser does not support the audio element.
+        </audio>
+        <audio id="Error">
+            <source type="audio/mpeg"> Your browser does not support the audio element.
+        </audio>
+
+        <div class="form-group row">
+            <label for='nodes' class="col-sm-3">Node:</label>
+            <select class="col-sm-4" style="display:block" onchange="changenodes()" id="nodes">
+                <option value="testnet">Testnet</option>
+                <option value="custom">Custom</option>
+            </select>
+        </div>
+        <div class="form-group row">
+            <select class="col-sm-4" style="display:none" id="testnetnodes">
+                <option value="https://testnet.gny.io">https://testnet.gny.io</option>
+            </select>
+            <input class="col-sm-4" style="display:none" id="customnode" type="text" value="">
+        </div>
+
+        <div class="form-group row">
+            <label for='delegate' class="col-sm-3 col-form-label">Delegate Name:</label>
+            <input class="col-sm-4" id="delegate" type="text" value="">
+        </div>
+
+        <div class="form-group row">
+            <label for='frequency' class="col-sm-3 col-form-label">Frequency (minutes):</label>
+            <input class="col-sm-4" id="frequency" type="number" min="1" max="20" value="3">
+        </div>
+
+        <div class="form-group row">
+            <label for='soundalarm' class="col-sm-3">Sound Alarm:</label>
+            <select class="col-sm-4" style="display:block" onchange="checkalarmtime()" id="alarmtime">
+                <option value="always">Always</option>
+                <option value="specific">Specific Times</option>
+            </select>
+        </div>
+
+        <div id='timeframe' style="display:none" class="form-group row">
+            <label for='timeframe' class="col-sm-3">Timeframe Alarms Will Sound:</label>
+            <input type="time" id="starttime" name="starttime" >
+            &nbsp;to&nbsp;
+            <input type="time" id="endtime" name="endtime" >
+        </div>
+
+        <div class="form-group row">
+            <label for='consecutive' class="col-sm-3 col-form-label">Consecutive Blocks Missed for Alarm:</label>
+            <input class="col-sm-4" id="consecutive" type="number" min="1" value="1">
+        </div>
+
+        <div class="form-group row">
+            <label for='missedBlockSound' class="col-sm-3 col-form-label">Missed Block Sound:</label>
+            <select class="col-sm-4" id="missedblocksound">
+                <option value="none">- None -</option>
+                <option selected value="mp3s/AlarmClock.mp3">Alarm Clock</option>
+                <option value="mp3s/CarAlarm.mp3">Car Alarm</option>
+                <option value="mp3s/Explosion.mp3">Explosion</option>
+                <option value="mp3s/FogHorn.mp3">Fog Horn</option>
+                <option value="mp3s/MachineGun.mp3">Machine Gun</option>
+                <option value="mp3s/PoliceSiren.mp3">Police Siren</option>
+                <option value="mp3s/ShortSiren.mp3">Short Siren</option>
+                <option value="mp3s/Siren1.mp3">Siren 1</option>
+                <option value="mp3s/Siren2.mp3">Siren 2</option>
+                <option value="mp3s/Siren3.mp3">Siren 3</option>
+                <option value="mp3s/Siren4.mp3">Siren 4</option>
+                <option value="mp3s/SmokeDetector.mp3">Smoke Detector</option>
+                <option value="mp3s/BeckyLynch.mp3">Wrestling - Becky Lynch</option>
+                <option value="mp3s/BrockLesnar.mp3">Wrestling - Brock Lesnar</option>
+                <option value="mp3s/Charlotte.mp3">Wrestling - Charlotte</option>
+                <option value="mp3s/Paige.mp3">Wrestling - Paige</option>
+                <option value="mp3s/RandyOrton.mp3">Wrestling - Randy Orton</option>
+                <option value="mp3s/RomanReigns.mp3">Wrestling - Roman Reigns</option>
+                <option value="mp3s/SamiZayn.mp3">Wrestling - Sami Zayn</option>
+                <option value="mp3s/StoneCold.mp3">Wrestling - Stone Cold Steve Austin</option>
+                <option value="mp3s/TheRock.mp3">Wrestling - The Rock</option>
+            </select>
+            <div class="col-sm-1"></div>
+            <button class="btn btn-primary mb-2" onclick="testMissedBlocksSound()" type="button">Test Sound</button>
+        </div>
+        <div class="form-group row">
+            <label for='errorBlockSound' class="col-sm-3 col-form-label">Error Sound:</label>
+            <select class="col-sm-4" id="errorblocksound">
+                <option value="none">- None -</option>
+                <option selected value="mp3s/AlarmClock.mp3">Alarm Clock</option>
+                <option value="mp3s/CarAlarm.mp3">Car Alarm</option>
+                <option value="mp3s/Explosion.mp3">Explosion</option>
+                <option value="mp3s/FogHorn.mp3">Fog Horn</option>
+                <option value="mp3s/MachineGun.mp3">Machine Gun</option>
+                <option value="mp3s/PoliceSiren.mp3">Police Siren</option>
+                <option value="mp3s/ShortSiren.mp3">Short Siren</option>
+                <option value="mp3s/Siren1.mp3">Siren 1</option>
+                <option value="mp3s/Siren2.mp3">Siren 2</option>
+                <option value="mp3s/Siren3.mp3">Siren 3</option>
+                <option value="mp3s/Siren4.mp3">Siren 4</option>
+                <option value="mp3s/SmokeDetector.mp3">Smoke Detector</option>
+                <option value="mp3s/BeckyLynch.mp3">Wrestling - Becky Lynch</option>
+                <option value="mp3s/BrockLesnar.mp3">Wrestling - Brock Lesnar</option>
+                <option value="mp3s/Charlotte.mp3">Wrestling - Charlotte</option>
+                <option value="mp3s/Paige.mp3">Wrestling - Paige</option>
+                <option value="mp3s/RandyOrton.mp3">Wrestling - Randy Orton</option>
+                <option value="mp3s/RomanReigns.mp3">Wrestling - Roman Reigns</option>
+                <option value="mp3s/SamiZayn.mp3">Wrestling - Sami Zayn</option>
+                <option value="mp3s/StoneCold.mp3">Wrestling - Stone Cold Steve Austin</option>
+                <option value="mp3s/TheRock.mp3">Wrestling - The Rock</option>
+            </select>
+            <div class="col-sm-1"></div>
+            <button class="btn btn-primary mb-2" onclick="testErrorSound()" type="button">Test Sound</button>
+        </div>
+        </br>
+        <button class="btn btn-success btn-lg" onclick="start()" type="button">Start Checking</button>
+        <button class="btn btn-danger btn-lg" onclick="stop()" type="button">Stop Checking</button>
+        <button class="btn btn-secondary btn-lg" onclick="stopSounds()" type="button">Stop Audio</button>
+    </form>
+    </br>
+    <div class="card-footer text-white bg-dark text-center py-3 blue">
+        Developed by <a href="https://explorer.lisk.io/delegate/15297866638783057016L">TonyT908</a> - Source Code available at <a href="https://github.com/MorinelloA/Missed-Block-Alarm-Lite">Github.com</a>
+    </div>
+</body>
+</html>
