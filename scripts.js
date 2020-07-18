@@ -209,7 +209,7 @@ function checkMissedBlocks() {
                 if (forgedBlocks2 > forgedBlocks)
                 {
                     consecutiveMissedBlocks = 0;
-                    missedBlocks = body.delegate.missedBlocks;
+                    missedBlocks = body.delegate.missedBlocks
                     forgedBlocks = forgedBlocks2;
                 }
 
